@@ -17,6 +17,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
+import ChangePasswordScreen from './ChangePasswordScreen';
 
 import {
     uploadMyAvatar,
@@ -63,6 +64,8 @@ export default function ProfileScreen({
     const [displayName, setDisplayName] = useState('');
     const [bio, setBio] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
+    const [showChangePassword, setShowChangePassword] =
+        useState(false);
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -269,6 +272,14 @@ export default function ProfileScreen({
 
     const showAvatar =
         Boolean(avatarUrl.trim()) && !avatarFailed;
+
+    if (showChangePassword) {
+        return (
+            <ChangePasswordScreen
+                onBack={() => setShowChangePassword(false)}
+            />
+        );
+    }
 
     return (
         <SafeAreaView
@@ -526,6 +537,30 @@ export default function ProfileScreen({
                             )}
                         </Pressable>
                     </View>
+
+
+                    {/* Account security */}
+                    <Pressable
+                        style={styles.changePasswordButton}
+                        onPress={() => setShowChangePassword(true)}
+                    >
+                        <Ionicons
+                            name="shield-checkmark-outline"
+                            size={19}
+                            color="#C4B5FD"
+                        />
+
+                        <Text style={styles.changePasswordText}>
+                            Change Password
+                        </Text>
+
+                        <Ionicons
+                            name="chevron-forward"
+                            size={17}
+                            color="#C4B5FD"
+                        />
+                    </Pressable>
+
 
                     {/* Logout */}
                     <Pressable
@@ -810,6 +845,27 @@ const styles = StyleSheet.create({
         color: '#FB7185',
         fontSize: 14,
         fontWeight: '800',
+    },
+
+    changePasswordButton: {
+        marginTop: 22,
+        borderWidth: 1,
+        borderColor: '#7545F5',
+        backgroundColor: '#211B3B',
+        borderRadius: 12,
+        paddingVertical: 16,
+        paddingHorizontal: 18,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 10,
+    },
+    changePasswordText: {
+        color: '#C4B5FD',
+        fontSize: 14,
+        fontWeight: '800',
+        flex: 1,
+        textAlign: 'center',
     },
 
 });

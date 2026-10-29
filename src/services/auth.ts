@@ -92,3 +92,96 @@ export async function refreshTokens(
 
     return data as RefreshTokenResponse;
 }
+
+export interface RegisterRequest {
+    username: string;
+    email: string;
+    password: string;
+}
+
+export interface RegisterResponse {
+    id: number;
+    username: string;
+    email: string;
+    enabled: boolean;
+}
+
+export async function register(
+    data: RegisterRequest
+): Promise<RegisterResponse> {
+
+    let response: Response;
+
+    try {
+        response = await fetch(
+            `${API_BASE_URL}/api/auth/register`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            }
+        );
+    } catch {
+        throw new Error(
+            'Could not connect to the server. Check your connection.'
+        );
+    }
+
+    const responseData = await response
+        .json()
+        .catch(() => null);
+
+    if (!response.ok) {
+        throw new Error(
+            responseData?.message ||
+            'Could not create account.'
+        );
+    }
+
+    return responseData as RegisterResponse;
+}
+
+export async function forgotPassword(
+    email: string
+): Promise<string> {
+
+    let response: Response;
+
+    try {
+        response = await fetch(
+            `${API_BASE_URL}/api/auth/forgot-password`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email.trim(),
+                }),
+            }
+        );
+    } catch {
+        throw new Error(
+            'Could not connect to the server. Check your connection.'
+        );
+    }
+
+    const message = await response.text();
+
+    if (!response.ok) {
+        let errorMessage = 'Could not send recovery instructions.';
+
+        try {
+            const errorData = JSON.parse(message);
+            errorMessage = errorData.message || errorMessage;
+        } catch {
+            // Keep the default error message
+        }
+
+        throw new Error(errorMessage);
+    }
+
+    return message;
+}

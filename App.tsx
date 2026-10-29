@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import LoginScreen from './src/screens/LoginScreen';
+import RegisterScreen from './src/screens/RegisterScreen';
+import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 import { StatusBar } from 'expo-status-bar';
 import { login } from './src/services/auth';
 import {
@@ -23,7 +25,9 @@ import {
 } from 'react-native';
 
 export default function App() {
-  const [screen, setScreen] = useState<'welcome' | 'login' | 'home'>('welcome');
+  const [screen, setScreen] = useState<
+      'welcome' | 'login' | 'register' | 'forgot-password' | 'home'
+  >('welcome');
   const [username, setUsername] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
@@ -142,6 +146,22 @@ export default function App() {
     );
   }
 
+  if (screen === 'forgot-password') {
+    return (
+        <ForgotPasswordScreen
+            onBack={() => setScreen('login')}
+        />
+    );
+  }
+
+  if (screen === 'register') {
+    return (
+        <RegisterScreen
+            onBack={() => setScreen('login')}
+        />
+    );
+  }
+
   if (screen === 'login') {
     return (
         <LoginScreen
@@ -149,12 +169,14 @@ export default function App() {
             onSignIn={handleSignIn}
             loading={loginLoading}
             error={loginError}
-            onCreateAccount={() =>
-                Alert.alert('Registration', 'We will implement registration next.')
-            }
-            onForgotPassword={() =>
-                Alert.alert('Password recovery', 'We will implement this next.')
-            }
+            onCreateAccount={() => {
+              setLoginError('');
+              setScreen('register');
+            }}
+            onForgotPassword={() => {
+              setLoginError('');
+              setScreen('forgot-password');
+            }}
         />
     );
   }
