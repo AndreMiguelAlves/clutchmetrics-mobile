@@ -4,11 +4,14 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
+import Ionicons from '@expo/vector-icons/Ionicons';
+import FeedScreen from '../screens/FeedScreen';
+import PlayersScreen from '../screens/PlayersScreen';
 import HomeScreen from '../screens/HomeScreen';
+import SubscriptionScreen from '../screens/SubscriptionScreen';
 
 type MainTabParamList = {
-    Feed: undefined;
+    Feed: { clipId: number } | undefined;
     Players: undefined;
     Premium: undefined;
     Profile: undefined;
@@ -25,6 +28,30 @@ type PlaceholderProps = {
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
+const tabIcons: Record<
+    keyof MainTabParamList,
+    {
+        active: keyof typeof Ionicons.glyphMap;
+        inactive: keyof typeof Ionicons.glyphMap;
+    }
+> = {
+    Feed: {
+        active: 'play-circle',
+        inactive: 'play-circle-outline',
+    },
+    Players: {
+        active: 'people',
+        inactive: 'people-outline',
+    },
+    Premium: {
+        active: 'diamond',
+        inactive: 'diamond-outline',
+    },
+    Profile: {
+        active: 'person-circle',
+        inactive: 'person-circle-outline',
+    },
+};
 
 function PlaceholderScreen({
                                title,
@@ -67,15 +94,6 @@ function PlayersTab() {
     );
 }
 
-function PremiumTab() {
-    return (
-        <PlaceholderScreen
-            title="Subscription"
-            description="Explore Free and Premium membership features."
-        />
-    );
-}
-
 export default function MainTabs({
                                      username,
                                      onLogout,
@@ -84,34 +102,60 @@ export default function MainTabs({
         <NavigationContainer>
             <Tab.Navigator
                 initialRouteName="Feed"
-                screenOptions={{
+                screenOptions={({ route }) => ({
                     headerShown: false,
+
                     tabBarActiveTintColor: '#A18BFF',
                     tabBarInactiveTintColor: '#8292B3',
+
+                    tabBarIcon: ({ focused, color, size }) => {
+                        const iconName = focused
+                            ? tabIcons[route.name].active
+                            : tabIcons[route.name].inactive;
+
+                        return (
+                            <Ionicons
+                                name={iconName}
+                                size={size}
+                                color={color}
+                            />
+                        );
+                    },
+
                     tabBarStyle: {
                         backgroundColor: '#111724',
                         borderTopColor: '#252D43',
                         paddingTop: 8,
                     },
+
                     tabBarLabelStyle: {
                         fontSize: 12,
                         fontWeight: '700',
                     },
-                }}
+                })}
             >
                 <Tab.Screen
                     name="Feed"
-                    component={FeedTab}
+                    component={FeedScreen}
                 />
 
-                <Tab.Screen
-                    name="Players"
-                    component={PlayersTab}
-                />
+
+                <Tab.Screen name="Players">
+                    {({ navigation }) => (
+                        <PlayersScreen
+                            onOpenClip={(clipId) => {
+                                navigation.navigate('Feed', {
+                                    clipId,
+                                });
+                            }}
+                        />
+                    )}
+                </Tab.Screen>
+
 
                 <Tab.Screen
                     name="Premium"
-                    component={PremiumTab}
+                    component={SubscriptionScreen}
                 />
 
                 <Tab.Screen name="Profile">

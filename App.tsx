@@ -1,10 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import LoginScreen from './src/screens/LoginScreen';
 import { StatusBar } from 'expo-status-bar';
 import { login } from './src/services/auth';
-import { clearSession, saveSession } from './src/services/session';
+import {
+  clearSession,
+  saveSession,
+  saveUsername,
+  getUsername,
+  getAccessToken,
+  getRefreshToken,
+} from './src/services/session';
+import { authenticatedFetch } from './src/services/api';
 import MainTabs from './src/navigation/MainTabs';
 import {
+  ActivityIndicator,
   Alert,
   Image,
   Pressable,
@@ -18,6 +27,53 @@ export default function App() {
   const [username, setUsername] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [checkingSession, setCheckingSession] = useState(true);
+
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function restoreSession() {
+      try {
+        const accessToken = await getAccessToken();
+        const refreshToken = await getRefreshToken();
+
+        // No saved session
+        if (!accessToken || !refreshToken) {
+          return;
+        }
+
+        // Validate the session and refresh tokens if needed
+        const response = await authenticatedFetch('/api/auth/me');
+
+        if (response.ok) {
+          const savedUsername = await getUsername();
+
+          if (mounted) {
+            setUsername(savedUsername || 'player');
+            setScreen('home');
+          }
+        } else if (response.status === 401) {
+          // The saved session is no longer valid
+          await clearSession();
+        }
+      } catch (error) {
+        // Keep stored tokens in case of a temporary network error
+        console.warn('Could not restore session:', error);
+      } finally {
+        if (mounted) {
+          setCheckingSession(false);
+        }
+      }
+    }
+
+    void restoreSession();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
 
   async function handleSignIn(email: string, password: string) {
     setLoginLoading(true);
@@ -28,7 +84,11 @@ export default function App() {
 
       await saveSession(result.accessToken, result.refreshToken);
 
-      setUsername(result.username || 'player');
+      const loggedInUsername = result.username || 'player';
+
+      await saveUsername(loggedInUsername);
+
+      setUsername(loggedInUsername);
       setScreen('home');
     } catch (error) {
       setLoginError(
@@ -54,6 +114,23 @@ export default function App() {
           'Could not clear the local session.'
       );
     }
+  }
+
+  if (checkingSession) {
+    return (
+        <View style={[styles.container, styles.loadingContainer]}>
+          <StatusBar style="light" />
+
+          <ActivityIndicator
+              size="large"
+              color="#A18BFF"
+          />
+
+          <Text style={styles.loadingText}>
+            Restoring your session...
+          </Text>
+        </View>
+    );
   }
 
   if (screen === 'home') {
@@ -315,5 +392,15 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '800',
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  loadingText: {
+    color: '#94A3C6',
+    fontSize: 14,
+    marginTop: 16,
   },
 });
