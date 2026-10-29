@@ -7,8 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FeedScreen from '../screens/FeedScreen';
 import PlayersScreen from '../screens/PlayersScreen';
-import HomeScreen from '../screens/HomeScreen';
 import SubscriptionScreen from '../screens/SubscriptionScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
 type MainTabParamList = {
     Feed: { clipId: number } | undefined;
@@ -95,7 +95,6 @@ function PlayersTab() {
 }
 
 export default function MainTabs({
-                                     username,
                                      onLogout,
                                  }: MainTabsProps) {
     return (
@@ -160,10 +159,7 @@ export default function MainTabs({
 
                 <Tab.Screen name="Profile">
                     {() => (
-                        <HomeScreen
-                            username={username}
-                            onLogout={onLogout}
-                        />
+                        <ProfileScreen onLogout={onLogout} />
                     )}
                 </Tab.Screen>
             </Tab.Navigator>
