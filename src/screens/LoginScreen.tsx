@@ -77,8 +77,7 @@ export default function LoginScreen({
                     </Text>
 
                     <Text style={styles.description}>
-                        Track your performance, discover highlights
-                        and connect with fellow players.
+                        Discover highlights, connect with players and explore the ClutchMetrics community.
                     </Text>
                 </View>
 
